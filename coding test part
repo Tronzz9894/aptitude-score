@@ -1,0 +1,182 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import CodeMirror from '@uiw/react-codemirror';
+import { javascript } from '@codemirror/lang-javascript';
+
+function CodingTestPage() {
+  const [questions, setQuestions] = useState([
+    {
+      id: 1,
+      title: "Reverse a String",
+      description: "Write a function that reverses a string.",
+      example_input: "hello",
+      example_output: "olleh",
+    },
+    {
+      id: 2,
+      title: "Sum of Array",
+      description: "Write a function that returns the sum of all elements in an array.",
+      example_input: "[1, 2, 3]",
+      example_output: "6",
+    },
+  ]);
+
+  const [selectedQuestion, setSelectedQuestion] = useState(null);
+  const [code, setCode] = useState('// Write your code here');
+  const [output, setOutput] = useState('');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (questions.length > 0) setSelectedQuestion(questions[0]);
+  }, [questions]);
+
+  const handleRunCode = () => {
+    setOutput('');
+    setError('');
+    axios
+      .post(
+        'https://judge0-ce.p.rapidapi.com/submissions',
+        {
+          source_code: code,
+          language_id: 63,
+          stdin: '',
+        },
+        {
+          headers: {
+            'X-RapidAPI-Key': 'YOUR_RAPIDAPI_KEY',
+            'X-RapidAPI-Host': 'judge0-ce.p.rapidapi.com',
+          },
+        }
+      )
+      .then((response) => {
+        const token = response.data.token;
+        return axios.get(`https://judge0-ce.p.rapidapi.com/submissions/${token}`, {
+          headers: {
+            'X-RapidAPI-Key': 'YOUR_RAPIDAPI_KEY',
+            'X-RapidAPI-Host': 'judge0-ce.p.rapidapi.com',
+          },
+        });
+      })
+      .then((response) => {
+        setOutput(response.data.stdout || '');
+        setError(response.data.stderr || response.data.compile_output || '');
+      })
+      .catch((err) => {
+        console.error('Error running code:', err);
+        setError('Failed to execute the code.');
+      });
+  };
+
+  const handleNextQuestion = () => {
+    const currentIndex = questions.findIndex((q) => q.id === selectedQuestion.id);
+    const nextIndex = (currentIndex + 1) % questions.length;
+    setSelectedQuestion(questions[nextIndex]);
+    setCode('// Write your code here');
+    setOutput('');
+    setError('');
+  };
+
+  const handleSubmit = () => {
+    alert('Submission successful!');
+  };
+
+  return (
+    <div style={styles.page}>
+      <h1 style={styles.header}>Coding Test</h1>
+      <div style={styles.container}>
+        <div style={styles.questionSection}>
+          {selectedQuestion && (
+            <>
+              <h2>{selectedQuestion.title}</h2>
+              <p>{selectedQuestion.description}</p>
+              <p><strong>Example Input:</strong> {selectedQuestion.example_input}</p>
+              <p><strong>Example Output:</strong> {selectedQuestion.example_output}</p>
+            </>
+          )}
+        </div>
+        <div style={styles.editorSection}>
+          <CodeMirror value={code} height="500px" extensions={[javascript()]} onChange={(value) => setCode(value)} />
+        </div>
+      </div>
+      <div style={styles.outputContainer}>
+        {output && <div style={styles.output}><h3>Output:</h3><pre>{output}</pre></div>}
+        {error && <div style={styles.error}><h3>Error:</h3><pre>{error}</pre></div>}
+      </div>
+      <div style={styles.buttonGroup}>
+        <button onClick={handleRunCode} style={styles.button}>Run Code</button>
+        <button onClick={handleNextQuestion} style={styles.button}>Next Question</button>
+        <button onClick={handleSubmit} style={styles.button}>Submit</button>
+      </div>
+    </div>
+  );
+}
+
+const styles = {
+  page: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    height: '100vh',
+    backgroundColor: '#282c34',
+    padding: '20px',
+    color: 'white',
+  },
+  header: {
+    fontSize: '28px',
+    marginBottom: '10px',
+  },
+  container: {
+    display: 'flex',
+    width: '90%',
+    height: '75vh',
+    backgroundColor: '#fff',
+    borderRadius: '12px',
+    boxShadow: '0 4px 10px rgba(0, 0, 0, 0.2)',
+    padding: '20px',
+    color: 'black',
+  },
+  questionSection: {
+    width: '30%',
+    padding: '15px',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '8px',
+    textAlign: 'left',
+  },
+  editorSection: {
+    width: '70%',
+    padding: '15px',
+  },
+  outputContainer: {
+    width: '90%',
+    marginTop: '15px',
+    textAlign: 'center',
+  },
+  buttonGroup: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '20px',
+    marginTop: '20px',
+  },
+  button: {
+    padding: '12px 20px',
+    fontSize: '16px',
+    backgroundColor: '#007bff',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+  },
+  output: {
+    padding: '10px',
+    backgroundColor: '#e7f4e4',
+    borderRadius: '5px',
+  },
+  error: {
+    padding: '10px',
+    backgroundColor: '#f8d7da',
+    borderRadius: '5px',
+    color: '#721c24',
+  },
+};
+
+export default CodingTestPage;

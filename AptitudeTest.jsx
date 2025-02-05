@@ -12,7 +12,7 @@ function AptitudeTest() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
   const [quizCompleted, setQuizCompleted] = useState(false);
-  const [userId] = useState('67a09ba10f07e4ff1bcb0ce3'); 
+  const [userId] = useState('67a09ba10f07e4ff1bcb0ce3');
 
   useEffect(() => {
     axios
@@ -60,102 +60,133 @@ function AptitudeTest() {
   const optionLabels = ['A', 'B', 'C', 'D'];
 
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title}>Aptitude Test</h1>
-      {quizData.length === 0 ? (
-        <p>Loading quiz...</p>
-      ) : quizCompleted ? (
-        <p style={styles.result}>Quiz Completed! Your score is {score}.</p>
-      ) : (
-        <div style={styles.quizBox}>
-          <h2 style={styles.question}>{decodeHtmlEntities(quizData[currentQuestion].question)}</h2>
-          <div style={styles.optionsContainer}>
-            {quizData[currentQuestion].options.map((option, index) => (
-              <button
-                key={index}
-                onClick={() => handleOptionSelect(option)}
-                style={{
-                  ...styles.optionButton,
-                  backgroundColor: selectedOption === option ? '#4CAF50' : '#ffffff',
-                  color: selectedOption === option ? '#fff' : '#000',
-                  border: selectedOption === option ? '2px solid #4CAF50' : '2px solid #ddd',
-                }}
-              >
-                <strong>{optionLabels[index]}.</strong> {decodeHtmlEntities(option)}
-              </button>
-            ))}
+    <div style={styles.pageContainer}>
+      <div style={styles.container}>
+        <h1 style={styles.title}>Aptitude Test</h1>
+        {quizData.length === 0 ? (
+          <p style={styles.loading}>Loading quiz...</p>
+        ) : quizCompleted ? (
+          <p style={styles.result}>Quiz Completed! Your score is {score}.</p>
+        ) : (
+          <div style={styles.quizBox}>
+            <h2 style={styles.question}>{decodeHtmlEntities(quizData[currentQuestion].question)}</h2>
+            <div style={styles.optionsContainer}>
+              {quizData[currentQuestion].options.map((option, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleOptionSelect(option)}
+                  style={{
+                    ...styles.optionButton,
+                    ...(selectedOption === option ? styles.optionButtonSelected : {}),
+                  }}
+                >
+                  <strong style={styles.optionLabel}>{optionLabels[index]}.</strong> {decodeHtmlEntities(option)}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={handleNextQuestion}
+              style={styles.nextButton}
+              disabled={!selectedOption}
+            >
+              {currentQuestion === quizData.length - 1 ? 'Submit Quiz' : 'Next Question'}
+            </button>
           </div>
-          <button
-            onClick={handleNextQuestion}
-            style={styles.nextButton}
-            disabled={!selectedOption}
-          >
-            {currentQuestion === quizData.length - 1 ? 'Submit Quiz' : 'Next Question'}
-          </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
 
+// **Updated Full-Screen Styles with Fixed Colors**
 const styles = {
+  pageContainer: {
+    width: '100vw',
+    height: '100vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#e3f2fd', // Light blue background
+  },
   container: {
-    width: '600px',
-    margin: '40px auto',
-    padding: '20px',
-    backgroundColor: '#f9f9f9',
-    border: '2px solid #ddd',
-    borderRadius: '20px',
-    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    width: '90%',
+    maxWidth: '800px',
+    height: '85vh',
+    backgroundColor: '#fff',
+    borderRadius: '12px',
+    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
+    padding: '30px',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
     textAlign: 'center',
   },
   title: {
-    fontSize: '24px',
+    fontSize: '28px',
     fontWeight: 'bold',
+    color: '#1e3a8a', // Deep blue
     marginBottom: '20px',
-    color: '#333',
+  },
+  loading: {
+    fontSize: '18px',
+    color: '#666',
   },
   quizBox: {
-    padding: '10px',
+    width: '100%',
   },
   question: {
-    fontSize: '18px',
+    fontSize: '22px',
     fontWeight: 'bold',
+    color: '#222',
     marginBottom: '20px',
-    color: '#333',
   },
   optionsContainer: {
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
-    gap: '10px',
+    gap: '15px',
+    width: '100%',
   },
   optionButton: {
-    padding: '12px',
+    padding: '15px',
     borderRadius: '8px',
     cursor: 'pointer',
     textAlign: 'left',
     width: '100%',
-    transition: 'background-color 0.3s ease, color 0.3s ease, border 0.3s ease',
+    fontSize: '16px',
+    fontWeight: '500',
+    border: '2px solid #1e88e5', // Blue border
+    backgroundColor: '#fff',
+    transition: 'all 0.3s ease',
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
-    fontSize: '16px',
+    gap: '10px',
+    color: '#000', // Ensuring visible text color
+  },
+  optionButtonSelected: {
+    backgroundColor: '#4CAF50',
+    color: '#fff',
+    border: '2px solid #4CAF50',
+  },
+  optionLabel: {
+    color: '#1e3a8a', // Dark blue for option letters A, B, C, D
+    fontWeight: 'bold',
   },
   nextButton: {
     marginTop: '20px',
-    padding: '12px 18px',
+    padding: '15px 25px',
     backgroundColor: '#007BFF',
     color: '#fff',
     border: 'none',
     borderRadius: '8px',
     cursor: 'pointer',
-    fontSize: '16px',
-    transition: 'background-color 0.3s ease',
+    fontSize: '18px',
+    transition: 'background-color 0.3s ease, transform 0.2s ease',
   },
   result: {
-    fontSize: '20px',
+    fontSize: '22px',
     fontWeight: 'bold',
-    color: '#333',
+    color: '#222',
   },
 };
 

@@ -3,6 +3,7 @@ import axios from 'axios';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 
+
 function CodingTestPage() {
   const [questions, setQuestions] = useState([
     {
@@ -25,6 +26,7 @@ function CodingTestPage() {
   const [code, setCode] = useState('// Write your code here');
   const [output, setOutput] = useState('');
   const [error, setError] = useState('');
+  const [score, setScore] = useState(0); // Store score here
 
   useEffect(() => {
     if (questions.length > 0) setSelectedQuestion(questions[0]);
@@ -33,33 +35,17 @@ function CodingTestPage() {
   const handleRunCode = () => {
     setOutput('');
     setError('');
+
+    // Send the code to the backend for execution
     axios
-      .post(
-        'https://judge0-ce.p.rapidapi.com/submissions',
-        {
-          source_code: code,
-          language_id: 63,
-          stdin: '',
-        },
-        {
-          headers: {
-            'X-RapidAPI-Key': 'YOUR_RAPIDAPI_KEY',
-            'X-RapidAPI-Host': 'judge0-ce.p.rapidapi.com',
-          },
+      .post('http://localhost:3001/runCode', { code })
+      .then((response) => {
+        const { output, error } = response.data;
+        if (error) {
+          setError(error);
+        } else {
+          setOutput(output);
         }
-      )
-      .then((response) => {
-        const token = response.data.token;
-        return axios.get(`https://judge0-ce.p.rapidapi.com/submissions/${token}`, {
-          headers: {
-            'X-RapidAPI-Key': 'YOUR_RAPIDAPI_KEY',
-            'X-RapidAPI-Host': 'judge0-ce.p.rapidapi.com',
-          },
-        });
-      })
-      .then((response) => {
-        setOutput(response.data.stdout || '');
-        setError(response.data.stderr || response.data.compile_output || '');
       })
       .catch((err) => {
         console.error('Error running code:', err);
@@ -71,13 +57,24 @@ function CodingTestPage() {
     const currentIndex = questions.findIndex((q) => q.id === selectedQuestion.id);
     const nextIndex = (currentIndex + 1) % questions.length;
     setSelectedQuestion(questions[nextIndex]);
+    
+    // Reset code and output after moving to the next question
     setCode('// Write your code here');
     setOutput('');
     setError('');
   };
 
   const handleSubmit = () => {
-    alert('Submission successful!');
+    // Send the score to the backend to save it
+    axios
+      .post('http://localhost:3001/saveScore', { userId: 'USER_ID', score })
+      .then((response) => {
+        alert('Submission successful!');
+      })
+      .catch((err) => {
+        console.error('Error submitting score:', err);
+        alert('Failed to submit score.');
+      });
   };
 
   return (
@@ -95,7 +92,12 @@ function CodingTestPage() {
           )}
         </div>
         <div style={styles.editorSection}>
-          <CodeMirror value={code} height="500px" extensions={[javascript()]} onChange={(value) => setCode(value)} />
+          <CodeMirror 
+            value={code}
+            height="500px"
+            extensions={[javascript()]}
+            onChange={(value) => setCode(value)} // Ensure code is updated on change
+          />
         </div>
       </div>
       <div style={styles.outputContainer}>

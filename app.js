@@ -2,6 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import cors from 'cors';
+import { exec } from 'child_process'; // For executing code
 
 const MONGO_URI = 'mongodb+srv://mani:mani9896@cluster0.j8c6a.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 
@@ -30,6 +31,30 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
+// New route for running code
+app.post('/runCode', async (req, res) => {
+  try {
+    const { code } = req.body;
+    if (!code) return res.status(400).send('Code is required.');
+
+    // Execute the JavaScript code using child process
+    exec(`node -e "${code}"`, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`exec error: ${error}`);
+        return res.status(400).send({ error: 'Error executing code: ' + error.message });
+      }
+      if (stderr) {
+        console.error(`stderr: ${stderr}`);
+        return res.status(400).send({ error: 'Error executing code: ' + stderr });
+      }
+      // Send the output back
+      res.status(200).send({ output: stdout });
+    });
+  } catch (error) {
+    res.status(500).send({ error: 'Error running code' });
+  }
+});
+
 // Save Score Route
 app.post('/saveScore', async (req, res) => {
   try {
@@ -43,6 +68,7 @@ app.post('/saveScore', async (req, res) => {
     await user.save();
     res.status(200).send('Score saved successfully!');
   } catch (error) {
+    console.error(error);
     res.status(500).send('Error saving score');
   }
 });

@@ -2,18 +2,16 @@ import express from 'express';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import cors from 'cors';
-import { exec } from 'child_process'; // For executing code
+import { exec } from 'child_process';
 
 const MONGO_URI = 'mongodb+srv://mani:mani9896@cluster0.j8c6a.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 
 const app = express();
 const port = 3001;
 
-// Middleware
 app.use(cors());
-app.use(express.json());  // Ensures the server can parse JSON request bodies
+app.use(express.json());
 
-// MongoDB Connection
 mongoose.connect(MONGO_URI)
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => {
@@ -21,33 +19,31 @@ mongoose.connect(MONGO_URI)
     process.exit(1);
   });
 
-// User Schema
 const userSchema = new mongoose.Schema({
   username: String,
   email: String,
   password: String,
+  fullName: String,
+  phone: String,
+  dob: String,
+  gender: String,
+  location: String,
+  twoFactorAuth: Boolean,
   score: { type: Number, default: 0 },
 });
 
 const User = mongoose.model('User', userSchema);
 
-// New route for running code
+// Run Code API
 app.post('/runCode', async (req, res) => {
   try {
     const { code } = req.body;
     if (!code) return res.status(400).send('Code is required.');
 
-    // Execute the JavaScript code using child process
-    exec(`node -e "${code}"`, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`exec error: ${error}`);
-        return res.status(400).send({ error: 'Error executing code: ' + error.message });
+    exec(`node -e "${code.replace(/"/g, '\\"')}"`, (error, stdout, stderr) => {
+      if (error || stderr) {
+        return res.status(400).send({ error: stderr || error.message });
       }
-      if (stderr) {
-        console.error(`stderr: ${stderr}`);
-        return res.status(400).send({ error: 'Error executing code: ' + stderr });
-      }
-      // Send the output back
       res.status(200).send({ output: stdout });
     });
   } catch (error) {
@@ -55,7 +51,7 @@ app.post('/runCode', async (req, res) => {
   }
 });
 
-// Save Score Route
+// Save Score API
 app.post('/saveScore', async (req, res) => {
   try {
     const { userId, score } = req.body;
@@ -64,7 +60,7 @@ app.post('/saveScore', async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).send('User not found.');
 
-    user.score = score;
+    user.score = Math.max(user.score, score);
     await user.save();
     res.status(200).send('Score saved successfully!');
   } catch (error) {
@@ -73,7 +69,7 @@ app.post('/saveScore', async (req, res) => {
   }
 });
 
-// Signup Route
+// Signup API
 app.post('/signup', async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -83,14 +79,13 @@ app.post('/signup', async (req, res) => {
     const newUser = new User({ username, email, password: hashedPassword });
 
     await newUser.save();
-
     res.status(200).send('Signup successful!');
   } catch (error) {
     res.status(500).send('Error during signup');
   }
 });
 
-// Login Route
+// Login API
 app.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -108,7 +103,61 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// Start Server
+// Fetch User Profile API
+app.get('/getProfile/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId);
+
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    res.status(200).json({
+      fullName: user.fullName,
+      username: user.username,
+      email: user.email,
+      phone: user.phone,
+      dob: user.dob,
+      gender: user.gender,
+      location: user.location,
+      twoFactorAuth: user.twoFactorAuth,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching profile' });
+  }
+});
+
+// Update Profile API
+app.put('/updateProfile', async (req, res) => {
+  try {
+    const { userId, fullName, username, email, phone, dob, gender, location, password, twoFactorAuth } = req.body;
+
+    if (!userId) return res.status(400).json({ message: 'User ID is required' });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.fullName = fullName || user.fullName;
+    user.username = username || user.username;
+    user.email = email || user.email;
+    user.phone = phone || user.phone;
+    user.dob = dob || user.dob;
+    user.gender = gender || user.gender;
+    user.location = location || user.location;
+    user.twoFactorAuth = twoFactorAuth !== undefined ? twoFactorAuth : user.twoFactorAuth;
+
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      user.password = hashedPassword;
+    }
+
+    await user.save();
+    res.status(200).json({ message: 'Profile updated successfully!' });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 });

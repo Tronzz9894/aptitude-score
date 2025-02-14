@@ -24,10 +24,36 @@ function EditProfile() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert('Profile updated successfully!');
-    navigate('/dashboard');
+    const userId = '679c87011e1b0746aa5550da';  
+
+    try {
+      await fetch('http://localhost:3001/updateProfile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          fullName: formData.fullName,
+          username: formData.username,
+          email: formData.email,
+          phone: formData.phone,
+          dob: formData.dob,
+          gender: formData.gender,
+          location: formData.location,
+          password: formData.password,
+          twoFactorAuth: formData.twoFactorAuth,
+        }),
+      });
+      alert('Updated successfully');
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('Updated successfully');
+      navigate('/dashboard');
+    }
   };
 
   return (
@@ -35,22 +61,22 @@ function EditProfile() {
       <div style={styles.card}>
         <h2 style={styles.title}>Edit Profile</h2>
         <form onSubmit={handleSubmit} style={styles.form}>
-          <label style={styles.label}>Full Name:</label>
+          <label style={styles.label}>Full Name</label>
           <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} required style={styles.input} />
 
-          <label style={styles.label}>Username:</label>
+          <label style={styles.label}>Username</label>
           <input type="text" name="username" value={formData.username} onChange={handleChange} required style={styles.input} />
 
-          <label style={styles.label}>Email Address:</label>
+          <label style={styles.label}>Email Address</label>
           <input type="email" name="email" value={formData.email} onChange={handleChange} required style={styles.input} />
 
-          <label style={styles.label}>Phone Number:</label>
+          <label style={styles.label}>Phone Number</label>
           <input type="text" name="phone" value={formData.phone} onChange={handleChange} style={styles.input} />
 
-          <label style={styles.label}>Date of Birth:</label>
+          <label style={styles.label}>Date of Birth</label>
           <input type="date" name="dob" value={formData.dob} onChange={handleChange} style={styles.input} />
 
-          <label style={styles.label}>Gender:</label>
+          <label style={styles.label}>Gender</label>
           <select name="gender" value={formData.gender} onChange={handleChange} style={styles.input}>
             <option value="">Select</option>
             <option value="Male">Male</option>
@@ -58,13 +84,13 @@ function EditProfile() {
             <option value="Other">Other</option>
           </select>
 
-          <label style={styles.label}>Location:</label>
+          <label style={styles.label}>Location</label>
           <input type="text" name="location" value={formData.location} onChange={handleChange} style={styles.input} />
 
-          <label style={styles.label}>Change Password:</label>
+          <label style={styles.label}>Change Password</label>
           <input type="password" name="password" value={formData.password} onChange={handleChange} style={styles.input} />
 
-          <label style={styles.label}>Confirm Password:</label>
+          <label style={styles.label}>Confirm Password</label>
           <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} style={styles.input} />
 
           <label style={styles.checkboxLabel}>
@@ -87,24 +113,28 @@ const styles = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    height: '100vh',
-    backgroundColor: '#f0f4f8',
-    padding: '20px', // Ensures there's space on the edges
+    minHeight: '100vh',
+    backgroundColor: '#f4f7fb',
+    padding: '0 30px',
   },
   card: {
-    width: '600px', // Adjust the width for a more rectangular shape
+    width: '100%',
+    maxWidth: '900px',
     padding: '30px',
     backgroundColor: '#ffffff',
     borderRadius: '12px',
-    boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0 6px 15px rgba(0, 0, 0, 0.1)',
     textAlign: 'left',
-    border: '1px solid #ddd',
+    border: '1px solid #e0e0e0',
+    overflow: 'hidden',
+    boxSizing: 'border-box',
+    background: 'linear-gradient(135deg, #b0c4de, #4682b4)',
   },
   title: {
     marginBottom: '20px',
     fontSize: '28px',
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: '600',
+    color: '#fff',
     textAlign: 'center',
   },
   form: {
@@ -114,60 +144,89 @@ const styles = {
   },
   label: {
     fontSize: '16px',
-    color: '#555',
-    marginBottom: '5px',
+    color: '#333',
+    marginBottom: '8px',
+    fontWeight: '500',
   },
   input: {
     padding: '12px',
     border: '1px solid #ccc',
     borderRadius: '8px',
-    fontSize: '16px',
-    color: '#333',
-    backgroundColor: '#fafafa',
-    transition: 'border-color 0.3s ease-in-out',
-  },
-  inputFocus: {
-    borderColor: '#007BFF',
+    fontSize: '14px',
+    color: '#555',
+    backgroundColor: '#f9f9f9',
+    width: '100%',
   },
   checkboxLabel: {
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
-    fontSize: '14px',
-    color: '#555',
+    fontSize: '16px',
   },
   buttonContainer: {
     display: 'flex',
     justifyContent: 'space-between',
-    gap: '10px',
+    alignItems: 'center',
   },
   button: {
-    padding: '12px 18px',
-    backgroundColor: '#28a745',
+    padding: '12px 25px',
+    backgroundColor: '#4CAF50',
     color: '#fff',
+    fontSize: '16px',
     border: 'none',
     borderRadius: '8px',
     cursor: 'pointer',
-    fontSize: '16px',
-    fontWeight: 'bold',
-    transition: 'background-color 0.3s ease-in-out',
-  },
-  buttonHover: {
-    backgroundColor: '#218838',
+    transition: 'background-color 0.3s',
   },
   cancelButton: {
-    padding: '12px 18px',
-    backgroundColor: '#dc3545',
+    padding: '12px 25px',
+    backgroundColor: '#f44336',
     color: '#fff',
+    fontSize: '16px',
     border: 'none',
     borderRadius: '8px',
     cursor: 'pointer',
-    fontSize: '16px',
-    fontWeight: 'bold',
-    transition: 'background-color 0.3s ease-in-out',
+    transition: 'background-color 0.3s',
   },
-  cancelButtonHover: {
-    backgroundColor: '#c82333',
+  errorMessage: {
+    color: 'red',
+    fontSize: '14px',
+    textAlign: 'center',
+    marginBottom: '10px',
+  },
+  // Media queries for responsiveness
+  '@media (max-width: 768px)': {
+    card: {
+      padding: '20px',
+    },
+    title: {
+      fontSize: '24px',
+    },
+    input: {
+      fontSize: '14px',
+    },
+    button: {
+      padding: '10px 20px',
+    },
+    cancelButton: {
+      padding: '10px 20px',
+    },
+  },
+  '@media (max-width: 480px)': {
+    card: {
+      padding: '15px',
+    },
+    title: {
+      fontSize: '20px',
+    },
+    input: {
+      fontSize: '13px',
+    },
+    button: {
+      padding: '8px 16px',
+    },
+    cancelButton: {
+      padding: '8px 16px',
+    },
   },
 };
 

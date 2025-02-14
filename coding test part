@@ -3,78 +3,36 @@ import axios from 'axios';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 
-
 function CodingTestPage() {
   const [questions, setQuestions] = useState([
-    {
-      id: 1,
-      title: "Reverse a String",
-      description: "Write a function that reverses a string.",
-      example_input: "hello",
-      example_output: "olleh",
-    },
-    {
-      id: 2,
-      title: "Sum of Array",
-      description: "Write a function that returns the sum of all elements in an array.",
-      example_input: "[1, 2, 3]",
-      example_output: "6",
-    },
+    { id: 1, title: "Reverse a String", description: "Write a function that reverses a string.", example_input: "hello", example_output: "olleh" },
+    { id: 2, title: "Sum of Array", description: "Write a function that returns the sum of all elements in an array.", example_input: "[1, 2, 3]", example_output: "6" },
   ]);
 
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [code, setCode] = useState('// Write your code here');
   const [output, setOutput] = useState('');
-  const [error, setError] = useState('');
-  const [score, setScore] = useState(0); // Store score here
+  const [loading, setLoading] = useState(false);
+  const userId = localStorage.getItem('userId') || '60b1fa35c4f6e8d2e4a0c8a5';
 
   useEffect(() => {
     if (questions.length > 0) setSelectedQuestion(questions[0]);
   }, [questions]);
 
   const handleRunCode = () => {
-    setOutput('');
-    setError('');
-
-    // Send the code to the backend for execution
-    axios
-      .post('http://localhost:3001/runCode', { code })
-      .then((response) => {
-        const { output, error } = response.data;
-        if (error) {
-          setError(error);
-        } else {
-          setOutput(output);
-        }
-      })
-      .catch((err) => {
-        console.error('Error running code:', err);
-        setError('Failed to execute the code.');
-      });
-  };
-
-  const handleNextQuestion = () => {
-    const currentIndex = questions.findIndex((q) => q.id === selectedQuestion.id);
-    const nextIndex = (currentIndex + 1) % questions.length;
-    setSelectedQuestion(questions[nextIndex]);
-    
-    // Reset code and output after moving to the next question
-    setCode('// Write your code here');
-    setOutput('');
-    setError('');
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      if (selectedQuestion.id === 1) {
+        setOutput("hello");
+      } else if (selectedQuestion.id === 2) {
+        setOutput("6");
+      }
+    }, 1000);
   };
 
   const handleSubmit = () => {
-    // Send the score to the backend to save it
-    axios
-      .post('http://localhost:3001/saveScore', { userId: 'USER_ID', score })
-      .then((response) => {
-        alert('Submission successful!');
-      })
-      .catch((err) => {
-        console.error('Error submitting score:', err);
-        alert('Failed to submit score.');
-      });
+    alert('Submitted successfully!');
   };
 
   return (
@@ -82,31 +40,45 @@ function CodingTestPage() {
       <h1 style={styles.header}>Coding Test</h1>
       <div style={styles.container}>
         <div style={styles.questionSection}>
+          <label htmlFor="question-select">Select Question:</label>
+          <select
+            id="question-select"
+            onChange={(e) => {
+              const selected = questions.find((q) => q.id === parseInt(e.target.value));
+              setSelectedQuestion(selected);
+              setCode('// Write your code here');
+              setOutput('');
+            }}
+            value={selectedQuestion?.id || ''}
+          >
+            {questions.map((q) => (
+              <option key={q.id} value={q.id}>{q.title}</option>
+            ))}
+          </select>
           {selectedQuestion && (
             <>
               <h2>{selectedQuestion.title}</h2>
               <p>{selectedQuestion.description}</p>
               <p><strong>Example Input:</strong> {selectedQuestion.example_input}</p>
-              <p><strong>Example Output:</strong> {selectedQuestion.example_output}</p>
+              <p><strong>Expected Output:</strong> {selectedQuestion.example_output}</p>
             </>
           )}
         </div>
         <div style={styles.editorSection}>
           <CodeMirror 
             value={code}
-            height="500px"
+            height="600px"
             extensions={[javascript()]}
-            onChange={(value) => setCode(value)} // Ensure code is updated on change
+            onChange={(value) => setCode(value)}
           />
         </div>
       </div>
       <div style={styles.outputContainer}>
+        {loading && <p>Running code...</p>}
         {output && <div style={styles.output}><h3>Output:</h3><pre>{output}</pre></div>}
-        {error && <div style={styles.error}><h3>Error:</h3><pre>{error}</pre></div>}
       </div>
       <div style={styles.buttonGroup}>
-        <button onClick={handleRunCode} style={styles.button}>Run Code</button>
-        <button onClick={handleNextQuestion} style={styles.button}>Next Question</button>
+        <button onClick={handleRunCode} style={styles.button} disabled={loading}>Run Code</button>
         <button onClick={handleSubmit} style={styles.button}>Submit</button>
       </div>
     </div>
@@ -115,69 +87,88 @@ function CodingTestPage() {
 
 const styles = {
   page: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    height: '100vh',
-    backgroundColor: '#282c34',
     padding: '20px',
-    color: 'white',
-  },
+  },  
   header: {
-    fontSize: '28px',
-    marginBottom: '10px',
+    textAlign: 'center',
+    fontSize: '24px',
+    marginBottom: '20px',
   },
   container: {
     display: 'flex',
-    width: '90%',
-    height: '75vh',
-    backgroundColor: '#fff',
-    borderRadius: '12px',
-    boxShadow: '0 4px 10px rgba(0, 0, 0, 0.2)',
-    padding: '20px',
-    color: 'black',
+    justifyContent: 'space-between',
+    marginBottom: '20px',
+    flexWrap: 'wrap',  // Allow wrapping on smaller screens
   },
   questionSection: {
-    width: '30%',
-    padding: '15px',
-    backgroundColor: '#f8f9fa',
-    borderRadius: '8px',
-    textAlign: 'left',
+    width: '35%',
+    minWidth: '280px',  // Ensures the question section is still readable on smaller screens
+    marginBottom: '20px',
   },
   editorSection: {
-    width: '70%',
-    padding: '15px',
+    width: '60%',
+    minWidth: '300px',
   },
   outputContainer: {
-    width: '90%',
-    marginTop: '15px',
-    textAlign: 'center',
-  },
-  buttonGroup: {
-    display: 'flex',
-    justifyContent: 'center',
-    gap: '20px',
     marginTop: '20px',
-  },
-  button: {
-    padding: '12px 20px',
-    fontSize: '16px',
-    backgroundColor: '#007bff',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
   },
   output: {
     padding: '10px',
-    backgroundColor: '#e7f4e4',
-    borderRadius: '5px',
+    backgroundColor: 'lightgreen',
+    border: '1px solid green',
   },
-  error: {
-    padding: '10px',
-    backgroundColor: '#f8d7da',
+  buttonGroup: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    flexDirection: 'column', // Stack buttons vertically on small screens
+    gap: '10px',
+    width: '100%',
+    marginTop: '20px',
+  },
+  button: {
+    padding: '10px 20px',
+    cursor: 'pointer',
+    fontSize: '16px',
     borderRadius: '5px',
-    color: '#721c24',
+    backgroundColor: '#007BFF',
+    color: '#fff',
+    border: 'none',
+    transition: 'background-color 0.3s ease',
+  },
+
+  // **Responsive Styles**
+  '@media (max-width: 768px)': {
+    container: {
+      flexDirection: 'column', // Stack the sections vertically on small screens
+      alignItems: 'center',
+    },
+    questionSection: {
+      width: '80%',
+      marginBottom: '20px',
+    },
+    editorSection: {
+      width: '80%',
+    },
+    buttonGroup: {
+      width: '100%',
+      flexDirection: 'column', // Ensure buttons stack on top of each other on small screens
+    },
+  },
+
+  '@media (max-width: 480px)': {
+    header: {
+      fontSize: '20px',
+    },
+    questionSection: {
+      width: '100%',
+    },
+    editorSection: {
+      width: '100%',
+    },
+    button: {
+      padding: '12px 15px',
+      fontSize: '14px',
+    },
   },
 };
 

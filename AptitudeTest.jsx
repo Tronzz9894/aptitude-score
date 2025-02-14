@@ -98,7 +98,7 @@ function AptitudeTest() {
   );
 }
 
-// **Updated Full-Screen Styles with Fixed Colors**
+// **Updated Full-Screen Styles with Fixed Colors and Responsive Design**
 const styles = {
   pageContainer: {
     width: '100vw',
@@ -187,6 +187,98 @@ const styles = {
     fontSize: '22px',
     fontWeight: 'bold',
     color: '#222',
+  },
+
+  // **Responsive Styles**
+  '@media (max-width: 768px)': {
+    container: {
+      width: '90%',
+      maxWidth: '100%',
+      height: 'auto',
+      padding: '20px',
+    },
+    title: {
+      fontSize: '24px',
+      marginBottom: '15px',
+    },
+    question: {
+      fontSize: '18px',
+      marginBottom: '15px',
+    },
+    optionsContainer: {
+      gridTemplateColumns: '1fr', // Stack the options vertically
+    },
+    optionButton: {
+      padding: '12px',
+      fontSize: '14px',
+    },
+    nextButton: {
+      padding: '12px 20px',
+      fontSize: '16px',
+    },
+    result: {
+      fontSize: '20px',
+    },
+  },
+
+  '@media (max-width: 480px)': {
+    container: {
+      width: '90%',
+      maxWidth: '100%',
+      padding: '15px',
+    },
+    title: {
+      fontSize: '20px',
+      marginBottom: '10px',
+    },
+    question: {
+      fontSize: '16px',
+      marginBottom: '10px',
+    },
+    optionsContainer: {
+      gridTemplateColumns: '1fr', // Stack the options vertically
+    },
+    optionButton: {
+      padding: '10px',
+      fontSize: '14px',
+    },
+    nextButton: {
+      padding: '10px 18px',
+      fontSize: '14px',
+    },
+    result: {
+      fontSize: '18px',
+    },
+  },
+
+  '@media (max-width: 360px)': {
+    container: {
+      width: '90%',
+      maxWidth: '100%',
+      padding: '10px',
+    },
+    title: {
+      fontSize: '18px',
+      marginBottom: '10px',
+    },
+    question: {
+      fontSize: '14px',
+      marginBottom: '10px',
+    },
+    optionsContainer: {
+      gridTemplateColumns: '1fr', // Stack the options vertically
+    },
+    optionButton: {
+      padding: '8px',
+      fontSize: '12px',
+    },
+    nextButton: {
+      padding: '8px 15px',
+      fontSize: '12px',
+    },
+    result: {
+      fontSize: '16px',
+    },
   },
 };
 

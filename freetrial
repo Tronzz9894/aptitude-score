@@ -1,0 +1,46 @@
+import React from 'react';
+
+function FreeTrial() {
+  return (
+    <div style={styles.container}>
+      <h1>Free Trial</h1>
+      <p>Enjoy your free trial of the assessment platform!</p>
+    </div>
+  );
+}
+
+const styles = {
+  container: {
+    textAlign: 'center',
+    marginTop: '50px',
+    padding: '20px',
+  },
+  // Responsive styles for different screen sizes
+  '@media (max-width: 768px)': {
+    container: {
+      marginTop: '40px',
+      padding: '15px',
+    },
+    h1: {
+      fontSize: '28px',
+    },
+    p: {
+      fontSize: '16px',
+    },
+  },
+
+  '@media (max-width: 480px)': {
+    container: {
+      marginTop: '30px',
+      padding: '10px',
+    },
+    h1: {
+      fontSize: '24px',
+    },
+    p: {
+      fontSize: '14px',
+    },
+  },
+};
+
+export default FreeTrial;
